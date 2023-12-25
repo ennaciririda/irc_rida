@@ -27,6 +27,8 @@ void Server::remove_channel_from_client(std::string client_name, std::string cha
 				if (channel_name == _channels[i].get_name()) {
 					(*iter).second.leave_channel(_channels[i]);
 					_channels[i].remove_client((*iter).second);
+					if (_channels[i].get_num_of_clients() == 0)
+						_channels.erase(_channels.begin() + i);
 					break;
 				}
 			}
@@ -84,16 +86,16 @@ void Server::kick_command(Client &client, std::string command, int &clientSocket
 	if (tokens.size() == 3 && !std::strcmp(tokens[2], ":"))
 		reason = client.get_nickname();
 	else {
-		pos = temp_command.find(tokens[2]);
+		pos = temp_command.find(tokens[1]);
 		reason = temp_command.substr(pos + 1);
 	}
 	response = ":" + client.get_nickname() + "!" + client.get_username() + "@" + serverHostname + " KICK " + tokens[0] + " " + tokens[1] + " :" + reason + "\r\n";
 	bytes_sent = send(clientSocket, response.c_str(), response.size(), 0);
+	remove_channel_from_client(tokens[1], tokens[0]);
 	for (std::map<int, Client>::iterator iter2 = _clients.begin(); iter2 != _clients.end(); iter2++){
 		if (check_if_client_already_joined((*iter2).second, tokens[0])) {
 			response = ":" + client.get_nickname() + "!" + client.get_username() + "@" + serverHostname + " KICK " + tokens[0] + " " + tokens[1] + " :" + reason + "\r\n";
 			bytes_sent = send((*iter2).first, response.c_str(), response.size(), 0);
 		}
 	}
-	remove_channel_from_client(tokens[1], tokens[0]);
 }

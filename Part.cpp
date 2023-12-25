@@ -5,13 +5,8 @@ void Server::part_from_channel(Client &client, std::string token) {
 		if (token == _channels[i].get_name()) {
 			client.leave_channel(_channels[i]);
 			_channels[i].remove_client(client);
-			if (_channels[i].get_num_of_clients() == 0) {
-				set_channel_mode(token, 'k', 0);
-				set_channel_mode(token, 'o', 0);
-				set_channel_mode(token, 't', 0);
-				set_channel_mode(token, 'l', 0);
-				set_channel_mode(token, 'i', 0);
-			}
+			if (_channels[i].get_num_of_clients() == 0)
+				_channels.erase(_channels.begin() + i);
 			break;
 		}
 	}
